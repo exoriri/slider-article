@@ -1,0 +1,9 @@
+@media screen and (min-width: 720px) and (max-width: 1200px) {
+    .text__title {
+        font-size: 4rem;
+    }
+
+    .text__subtitle {
+        font-size: 1.25rem;
+    }
+}
