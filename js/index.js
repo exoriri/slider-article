@@ -20,6 +20,7 @@ arrowBtnRight.addEventListener('click', function() {
     activeIndex += 1;
 
     if (activeIndex === countItems) {
+        slider.style.transition = 'transform .3s';
         console.log(activeIndex)
         activeIndex = 0;
         slider.style.transform = `translateX(-${position + sliderElemWidth}px)`;
@@ -47,7 +48,6 @@ arrowBtnLeft.addEventListener('click', function() {
     activeIndex -= 1;
     if (activeIndex === -1) {
         slider.style.transition = 'transform .3s';
-        position += sliderElemWidth;
         slider.style.transform = `translateX(${position+sliderElemWidth}px)`;
         slider.insertAdjacentElement('afterbegin', sliderItems[countItems-1].cloneNode(true));
         setTimeout(() => {
