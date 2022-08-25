@@ -3,22 +3,29 @@ html, body {
     box-sizing: border-box;
 }
 
-
+/* Контейнер слайдера, чтобы убрать scroll */
 .page {
     width: 100%;
     height: 100%;
-    max-width: 100%;
     overflow: hidden;
 }
 
+/* Список должен быть горизонтальный, поэтому ставим display: flex; 
+   Слайдер будем двигать с помощью transform: translateX() и чтобы анимировать это ставим transition 
+*/
 .slider {
     display: flex;
     width: 100%;
     height: 100%;
     transition: transform .3s;
-    transform: translateX(0px);
 }
 
+/* Элемент слайдера */
+.slider__item {
+    min-width: 100%;
+}
+
+/* Позиционируем кружочки */
 .slider__footer {
     position: absolute;
     bottom: 10%;
@@ -28,12 +35,7 @@ html, body {
     align-items: center;
 }
 
-.slider__item {
-    min-width: 100%;
-    position: relative;
-    right: 0;
-}
-
+/* В картинке у нас есть темный блок с текстом. С помощью flex'a позиционируем его посередине */
 .slider__img {
     display: flex;
     justify-content: center;
@@ -44,6 +46,7 @@ html, body {
     background-size: cover;
 }
 
+/* Картинки */
 .slider__img--1 {
     background-image: url(../images/image1.jpg);
 }
@@ -64,6 +67,9 @@ html, body {
     background-image: url(../images/image5.png);
 }
 
+/* По макету у нас был padding 50px, на экран 1920px. 
+   Чтобы он смотрелся в таких же пропорциях на остальных экрнанах вычесляем процент
+*/
 .text {
     width: 80%;
     background: rgba(0, 0, 0, .75);
@@ -82,14 +88,11 @@ html, body {
     font-size: 1.25rem;
 }
 
-.arrow__left {
-    background: url(../icons/);
-}
-
 .dots {
     display: flex;
 }
 
+/* Аналогичная ситуация как и с классом .text, только для размера кружка */
 .dot {
     width: calc(50 / 1920 * 100vw);
     height: calc(50 / 1920 * 100vw);
@@ -106,6 +109,9 @@ html, body {
     margin-right: 0;
 }
 
+/* Стрелка адаптировалась под разные экраны делаем ее, условно, 20%.
+   Максимальная ширина скаченного svg стрелки 110px. И чтобы из-за процентов не терялись пропорции стаавим ей max-width: 110px;
+*/
 .arrow-btn {
     padding: 0;
     width: 20%;
