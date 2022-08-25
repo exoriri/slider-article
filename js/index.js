@@ -47,6 +47,7 @@ const onRightBtnClick = () => {
     activeIndex += 1;
     // Если мы находимся на последнем элементе
     if (activeIndex === countItems) {
+        slider.style.transition = 'transform .3s';
         // Меняем инедкс на 0, чтобы в кружочках показывать перый активный элемент 
         activeIndex = 0;
         // Двигаем слайдер к фиктивному элементу
