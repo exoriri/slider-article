@@ -128,11 +128,6 @@ const onLeftBtnClick = () => {
     }
 };
 
-// Событие по нажитию на кнопку справа
-arrowBtnRight.addEventListener('click', debounce(onRightBtnClick, 300));
-// Событие по нажатию на кнопку слева
-arrowBtnLeft.addEventListener('click', debounce(onLeftBtnClick, 300));
-
 // Debounce
 function debounce(func, ms) {
     let isFuncProcessing = false;
@@ -146,4 +141,71 @@ function debounce(func, ms) {
             isFuncProcessing = false;
         }, ms)
     }
-}
+};
+
+let touchClientX;
+let touchstartX = 0;
+let offsetedX = 0;
+let startingPosition = position;
+let movingDirection;
+
+// Событие по нажитию на кнопку справа
+arrowBtnRight.addEventListener('click', debounce(onRightBtnClick, 300));
+// Событие по нажатию на кнопку слева
+arrowBtnLeft.addEventListener('click', debounce(onLeftBtnClick, 300));
+
+function moveOnTouch(e) {
+    // slider.style.transition = 'transform 0.5s ease-out';
+
+    const currentX = e.changedTouches[0].pageX;
+     
+    if (currentX < touchstartX) {
+        offsetedX += touchstartX - currentX; 
+        position += touchstartX - currentX;
+        slider.style.transform = `translateX(-${position}px)`;
+        movingDirection = 'left';
+    } else if (currentX > touchstartX) {
+        offsetedX += currentX - touchstartX; 
+        position -= currentX - touchstartX;
+        slider.style.transform = `translateX(-${position}px)`;
+        movingDirection = 'right';
+    }
+
+    touchstartX = e.changedTouches[0].pageX;
+};
+slider.addEventListener('touchstart', (e) => {
+    slider.style.transition = 'transform 0.1s ease-out';
+    touchstartX = e.changedTouches[0].pageX;
+});
+
+slider.addEventListener('touchmove', debounce(moveOnTouch, 30));
+
+slider.addEventListener('touchend', (e) => {
+    //Для плавности анимации ставим анимацию долистывания 300мс
+    slider.style.transition = 'transform 0.3s ease-out';
+
+    const absoluteOffsetedX = Math.abs(offsetedX);
+    
+    if (movingDirection === 'left') {
+        position += sliderElemWidth - offsetedX;
+        if (absoluteOffsetedX > sliderElemWidth / 2) {
+            slider.style.transform = `translateX(-${position}px)`;
+        } else {
+            position = startingPosition;
+            slider.style.transform = `translateX(-${position}px)`;
+        }
+    } else if (movingDirection === 'right') {
+        position -= sliderElemWidth - offsetedX;
+        if (offsetedX > sliderElemWidth / 2) {
+            slider.style.transform = `translateX(-${position}px)`;
+        } else {
+            position = startingPosition;
+            slider.style.transform = `translateX(-${position}px)`;
+        }
+        // slider.style.transform = `translateX(-${position}px)`;
+    };
+
+    startingPosition = position;
+    offsetedX = 0;
+    touchstartX = 0;
+});
