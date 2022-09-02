@@ -33,6 +33,7 @@ let touchstartX = 0;
 let offsetedX = 0;
 let movingDirection;
 
+
 /**
  * Убираем анимацию по умолчанию написанную в css.
  * Иначе, при открытии страницы у нас будет анимация сдвига влево
@@ -47,6 +48,13 @@ slider.style.transform = `translateX(-${position}px)`;
 slider.insertAdjacentElement("afterbegin", lastSliderItem.cloneNode(true));
 //Вставляем фиктивный первый элемент после последнего
 slider.insertAdjacentElement("beforeend", firstSliderItem.cloneNode(true));
+
+window.addEventListener('resize', function() {
+    position = this.window.innerWidth * (activeIndex + 1);
+    startingPosition = position;
+    sliderElemWidth = document.querySelectorAll(".slider__item")[0].offsetWidth;
+    slider.style.transform = `translateX(-${position}px)`;
+})
 
 const slideLastElementForward = () => {
   slider.style.transition = "transform .3s";
@@ -185,7 +193,7 @@ function onRelease() {
   let moveTo = sliderElemWidth - offsetedX;
 
   if (movingDirection === "left") {
-    if (offsetedX > sliderElemWidth / 2) {
+    if (offsetedX > sliderElemWidth / 7) {
       position += moveTo;
       activeIndex += 1;
 
@@ -208,9 +216,8 @@ function onRelease() {
       position = startingPosition;
     }
   } else if (movingDirection === "right") {
-    if (offsetedX > sliderElemWidth / 2) {
+    if (offsetedX > sliderElemWidth / 7) {
       position -= moveTo;
-      console.log("OFFSETTED X", offsetedX);
       activeIndex -= 1;
       // Отслеживаем погрешности в вычислениях.
       // Бывает такое, что отступ встает не ровно. Потому что двигаем слайдер туда-сюда
@@ -228,32 +235,15 @@ function onRelease() {
       } else {
         switchActiveCircleOnBack();
       }
-    } else if (offsetedX <= sliderElemWidth / 2) {
+    } else if (offsetedX <= sliderElemWidth / 7) {
       position = startingPosition;
     }
   }
 
   slider.style.transform = `translateX(-${position}px)`;
 
-  console.log("STARTING POS", startingPosition);
   startingPosition = position;
-  console.log("STARTING CHANGED POS", startingPosition);
   offsetedX = 0;
-}
-
-// Debounce
-function debounce(func, ms) {
-  let isFuncProcessing = false;
-  return function () {
-    if (isFuncProcessing) return;
-
-    func.apply(this, arguments);
-
-    isFuncProcessing = true;
-    setTimeout(() => {
-      isFuncProcessing = false;
-    }, ms);
-  };
 }
 
 // Событие по нажитию на стрелку справа
@@ -261,7 +251,6 @@ arrowBtnRight.addEventListener("click", debounce(onRightBtnClick, 300));
 // Событие по нажатию на стрелку слева
 arrowBtnLeft.addEventListener("click", debounce(onLeftBtnClick, 300));
 
-// function moveOnEnd()
 
 slider.addEventListener("touchstart", touchStart);
 
