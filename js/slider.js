@@ -11,7 +11,7 @@ function debounce(func, ms) {
       isFuncProcessing = false;
     }, ms);
   };
-};
+}
 
 class Slider {
   #arrowBtnLeft = document.querySelectorAll(".arrow-btn")[0];
@@ -47,6 +47,7 @@ class Slider {
   #touchstartX = 0;
   #offsetedX = 0;
   #movingDirection;
+  #isCaptured = false;
 
   constructor() {
     /**
@@ -70,7 +71,7 @@ class Slider {
       this.#firstSliderItem.cloneNode(true)
     );
 
-    window.addEventListener('resize', this.#onWindowResize);
+    window.addEventListener("resize", this.#onWindowResize);
 
     //События для кнопок
     this.#arrowBtnRight.addEventListener(
@@ -81,7 +82,7 @@ class Slider {
       "click",
       debounce(this.#onLeftBtnClick, 300)
     );
-    
+
     //События для прокрутки слайдера
     this.#slider.addEventListener("touchstart", this.#touchStart);
     this.#slider.addEventListener("touchmove", this.#onTouchMove);
@@ -89,6 +90,14 @@ class Slider {
     this.#slider.addEventListener("mousedown", this.#onMouseDown);
     this.#slider.addEventListener("mousemove", this.#onMouseMove);
     this.#slider.addEventListener("mouseup", this.#onRelease);
+  }
+
+  set captured(value) {
+    this.#isCaptured = value;
+  }
+
+  get captured() {
+    return this.#isCaptured;
   }
 
   set touchStartX(value) {
@@ -154,33 +163,105 @@ class Slider {
     this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
   };
 
-  #touchStart = () => {};
+  #touchStart = (e) => {
+    this.#slider.style.transition = "transform 0.1s ease-out";
+    this.touchStartX = e.changedTouches[0].pageX;
+  };
 
-  #onTouchMove = () => {};
+  #onMove = (currentX) => {
+    if (currentX < this.touchStartX) {
+      if (this.slidingDirection === "right") {
+        this.offsetX = -this.offsetX;
+      }
+      this.offsetX += this.touchStartX - currentX;
+      this.currentPosition += this.touchStartX - currentX;
+      this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
+      this.slidingDirection = "left";
+    } else if (currentX > this.touchStartX) {
+      if (this.slidingDirection === "left") {
+        this.offsetX = -this.offsetX;
+      }
+      this.offsetX += currentX - this.touchStartX;
+      this.currentPosition -= currentX - this.touchStartX;
+      this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
+      this.slidingDirection = "right";
+    }
+    this.touchStartX = currentX;
+  };
 
-  #onRelease = () => {};
+  #onTouchMove = (e) => {
+    const currentX = e.changedTouches[0].pageX;
+    this.#onMove(currentX);
+  };
 
-  #onMouseDown = () => {};
+  #onRelease = () => {
+    this.#isCaptured = false;
+    //Для плавности анимации ставим анимацию долистывания 300мс
+    this.#slider.style.transition = "transform .3s ease-out";
+    let moveTo = this.slideWidth - this.offsetX;
+    if (this.slidingDirection === "left") {
+      if (this.offsetX > this.slideWidth / 7) {
+        this.currentPosition += moveTo;
+        this.currentIndex += 1;
+        if (this.currentIndex === this.#countItems) {
+          this.slideLastElementForward();
+        } else {
+          this.switchActiveCircleOnForward();
+        }
+      } else {
+        // если пролистали меньше, чем на 1/7 экрана возвращаем на место
+        this.currentPosition = this.initialPosition;
+      }
+    } else if (this.slidingDirection === "right") {
+      if (this.offsetX > this.slideWidth / 7) {
+        this.currentPosition -= moveTo;
+        this.currentIndex -= 1;
 
-  #onMouseMove = () => {};
+        if (this.currentIndex === -1) {
+          this.slideLastElementBack();
+        } else {
+          this.switchActiveCircleOnBack();
+        }
+      } else if (this.offsetX <= this.slideWidth / 7) {
+        // если пролистали меньше, чем на 1/7 экрана возвращаем на место
+        this.currentPosition = this.initialPosition;
+      }
+    }
+    this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
+    this.initialPosition = this.currentPosition;
+    this.offsetX = 0;
+  };
+
+  #onMouseDown = (e) => {
+    this.#slider.style.transition = "transform 0.1s ease-out";
+    this.captured = true;
+    this.touchStartX = e.pageX;
+  };
+
+  #onMouseMove = (e) => {
+    if (this.#isCaptured) {
+      const currentX = e.pageX;
+      this.#onMove(currentX);
+    }
+  };
 
   #onRightBtnClick = () => {
     // Индекс следуещего активного элемента
     this.currentIndex = this.currentIndex + 1;
-    
+
     // Если мы находимся на последнем элементе
     if (this.currentIndex === this.#countItems) {
-        this.slideLastElementForward();
+      this.slideLastElementForward();
     } else {
-        this.#slider.style.transition = "transform .3s";
-        // запоминаем позицию с шириной, на которую мы будем сдвигать слайдер
-        this.currentPosition = this.currentPosition + this.#sliderElemWidth;
-        // Двигаем слайдер, анимируется он с помощью transition
-        this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
+      this.#slider.style.transition = "transform .3s";
+      // запоминаем позицию с шириной, на которую мы будем сдвигать слайдер
+      this.currentPosition = this.currentPosition + this.#sliderElemWidth;
+      // Двигаем слайдер, анимируется он с помощью transition
+      this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
 
-        this.initialPosition = this.currentPosition
+      this.initialPosition = this.currentPosition;
 
-        this.switchActiveCircleOnForward();
+      this.switchActiveCircleOnForward();
     }
   };
 
@@ -210,22 +291,22 @@ class Slider {
     this.#slider.style.transition = "transform .3s";
     // Двигаем слайдер к фиктивному элементу
     this.#slider.style.transform = `translateX(0px)`;
-  
+
     this.currentIndex = this.#countItems - 1;
     this.#dots[this.currentIndex].classList.add("dot--active");
     this.#dots[0].classList.remove("dot--active");
-  
+
     /**
-      * Анимация прокрутки длиться 300мс. Это мы указываем в нашем коде.
-      * slider.style.transform = 'transform .3s'
-      */
+     * Анимация прокрутки длиться 300мс. Это мы указываем в нашем коде.
+     * slider.style.transform = 'transform .3s'
+     */
     setTimeout(() => {
       // Чтобы сделать прокрутку до настоящего элемента незаметной, убираем transition
       this.#slider.style.transition = "none";
       /**
-        * countItems сейчас равно 5. Чтобы переместиться на настоящий элемент.
-        * Надо с позиции первого настящего элемента сдвинуть слайдер в 5 раз.
-        */
+       * countItems сейчас равно 5. Чтобы переместиться на настоящий элемент.
+       * Надо с позиции первого настящего элемента сдвинуть слайдер в 5 раз.
+       */
       this.currentPosition = this.slideWidth * this.#countItems;
       // Двигаем слайдер до настоящего последнего элемента
       this.#slider.style.transform = `translateX(-${this.currentPosition}px)`;
@@ -238,12 +319,14 @@ class Slider {
     // Меняем инедкс на 0, чтобы в кружочках показывать перый активный элемент
     this.currentIndex = 0;
     // Двигаем слайдер к фиктивному элементу
-    this.#slider.style.transform = `translateX(-${this.currentPosition + this.slideWidth}px)`;
+    this.#slider.style.transform = `translateX(-${
+      this.currentPosition + this.slideWidth
+    }px)`;
     // Делаем первый кружок активным
     this.#dots[0].classList.add("dot--active");
     // Удаляем активность с последнего кружка
     this.#dots[this.#countItems - 1].classList.remove("dot--active");
-  
+
     /**
      * Анимация прокрутки длиться 300мс. Это мы указываем в нашем коде.
      * slider.style.transform = 'transform .3s'
@@ -270,7 +353,7 @@ class Slider {
     this.#dots[this.currentIndex].classList.add("dot--active");
     // Удаляем активность с предыдущего кружка
     this.#dots[this.currentIndex + 1].classList.remove("dot--active");
-  }
+  };
 }
 
 new Slider();

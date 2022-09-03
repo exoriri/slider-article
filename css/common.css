@@ -20,6 +20,12 @@ html, body {
     transition: transform .3s ease-out;
 }
 
+/* Меняем курсор при захвате */
+.slider:active {
+    cursor: grabbing;
+    user-select: none;
+}
+
 /* Элемент слайдера */
 .slider__item {
     min-width: 100%;
